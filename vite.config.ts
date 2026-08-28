@@ -5,11 +5,11 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
-const githubPagesBase =
-  process.env.GITHUB_PAGES === "true" ? "/animal-farm-ranked/" : "/";
 
 export default defineConfig({
-  base: githubPagesBase,
+  // Custom domain (ranked.goodvibes.gg) serves from /. Project URL without
+  // custom domain would need /animal-farm-ranked/ — custom domain is canonical.
+  base: "/",
   plugins: [react()],
   resolve: {
     alias: {

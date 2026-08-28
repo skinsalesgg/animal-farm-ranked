@@ -2,9 +2,9 @@
 
 Community tier lists — rank items, submit your list, see the aggregate.
 
-**Live (GitHub Pages):** https://skinsalesgg.github.io/animal-farm-ranked/
+**Live:** https://ranked.goodvibes.gg
 
-Production domain (planned): https://ranked.goodvibes.gg
+Legacy GitHub URL (`skinsalesgg.github.io/animal-farm-ranked/`) is not used when a custom domain is configured.
 
 ## Local development
 
