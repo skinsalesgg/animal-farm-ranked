@@ -20,40 +20,21 @@ Docker keeps it on the named volume `ranked_api_data` (mounted at `/app/data`). 
 ranked.goodvibes.gg          → GitHub Pages / CF (static SPA)
 api.ranked.goodvibes.gg      → nginx on VPS → animal_farm_ranked_api:8787
                                └── data/ranked.db (SQLite, one file on a volume)
-skinsales.gg                 → outbound links only
-csfloat-monitor compose      → unchanged
+csfloat-monitor nginx        → one-time proxy to api.ranked.goodvibes.gg (see deploy.md)
 ```
 
 ## GitHub configuration
 
-### csfloat-monitor (VPS deploy — `.github/workflows/deploy.yml`)
+All deploy config lives on **this repo** — see **[docs/deploy.md](./deploy.md)**.
 
-Set in **Settings → Secrets and variables → Actions**:
+| Workflow | Trigger | Needs |
+|----------|---------|-------|
+| `deploy-pages.yml` | push `main` | Variable `VITE_API_URL` |
+| `deploy-api.yml` | push `main` | Secrets `SSH_*`, optional `DEPLOY_PATH`; vars `CORS_ORIGINS`, `SEED_ON_START` |
 
-| Name | Type | Required | Default / notes |
-|------|------|----------|----------------|
-| `RANKED_DEPLOY_PATH` | Secret | No | `$HOME/animal-farm-ranked` on VPS |
-| `RANKED_CORS_ORIGINS` | Variable | No | `https://ranked.goodvibes.gg,http://localhost:3000` |
-| `RANKED_SEED_ON_START` | Variable | No | `1` |
-| `RANKED_TURSO_DATABASE_URL` | Secret | No | Omit for single-file SQLite (recommended) |
-| `RANKED_TURSO_AUTH_TOKEN` | Secret | No | Only with Turso |
+Nginx/TLS for `api.ranked.goodvibes.gg` is a **one-time** VPS setup (documented in deploy.md), not part of this repo's deploy workflow.
 
-Deploy writes `~/animal-farm-ranked/.env`:
-
-```env
-CORS_ORIGINS=…
-SEED_ON_START=…
-```
-
-`HOST`, `PORT`, `NODE_ENV`, and `DATABASE_PATH=data/ranked.db` are set in `compose.yml` (not from `.env`).
-
-### animal-farm-ranked (GitHub Pages frontend)
-
-| Name | Type | Required | Value |
-|------|------|----------|-------|
-| `VITE_API_URL` | Variable | Yes | `https://api.ranked.goodvibes.gg` |
-
-## 1. Configure env (manual / non-deploy)
+## 1. Configure env (manual)
 
 On the VPS, clone or pull `kato-ranking` and create `.env` (or let **csfloat-monitor deploy** write it — see [GitHub configuration](#github-configuration) above):
 
@@ -160,7 +141,6 @@ Re-run the Pages deploy workflow (or push to `main`).
 - `curl https://api.ranked.goodvibes.gg/health` → `{"ok":true}`
 - `curl https://api.ranked.goodvibes.gg/rankings/kato-2014-holos/community`
 - Open `https://ranked.goodvibes.gg`, rank holos, submit, share link works
-- From `https://skinsales.gg`, **Ranked** / **Animal Farm Ranked** links open ranked site
 
 ## Operations
 
@@ -188,7 +168,7 @@ docker compose up -d ranked-api
 | Compose file | `csfloat-monitor/compose.yml` | `kato-ranking/compose.yml` |
 | Runtime | Python / Litestar | Node / Hono |
 | Database | Postgres server | Single SQLite file (`ranked.db`) |
-| Deploy | VPS git pull + compose | VPS git pull + compose in kato-ranking dir |
+| Deploy | This repo (`deploy-api.yml`) | VPS git pull + compose in kato-ranking dir |
 | Failure blast radius | Sales API | Tier lists only |
 
 ## Optional: Turso

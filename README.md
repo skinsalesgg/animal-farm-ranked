@@ -28,12 +28,12 @@ In GitHub: **Settings → Secrets and variables → Actions → Variables**.
 
 ## Production API (Docker on VPS)
 
-The API runs in a **separate** container from `csfloat-monitor` — own compose file, own network, **one SQLite file** for data. See **[docs/docker-api.md](./docs/docker-api.md)** for full setup (compose, nginx, DNS).
+Deploy is owned by this repo — see **[docs/deploy.md](./docs/deploy.md)**.
 
-Quick start on the VPS:
+Quick manual start (same as CI deploy runs on the VPS):
 
 ```bash
-cp .env.example .env   # CORS_ORIGINS + DATABASE_PATH (defaults are fine)
+cp .env.example .env   # CORS_ORIGINS only; compose sets HOST/DATABASE_PATH
 docker compose up -d --build
 ```
 
@@ -45,5 +45,6 @@ docker compose up -d --build
 
 ## Docs
 
-- [Docker API deploy (VPS)](./docs/docker-api.md)
-- [skinsales.gg integration plan](./docs/skinsales-integration.md)
+- [Deploy guide](./docs/deploy.md)
+- [Docker API details](./docs/docker-api.md)
+- [skinsales integration notes (historical)](./docs/skinsales-integration.md)
