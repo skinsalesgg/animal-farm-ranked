@@ -26,12 +26,24 @@ GitHub Pages hosts the **static frontend only**. Rankings, submissions, and comm
 
 In GitHub: **Settings → Secrets and variables → Actions → Variables**.
 
+## Production API (Docker on VPS)
+
+The API runs in a **separate** container from `csfloat-monitor` — own compose file, own network, **one SQLite file** for data. See **[docs/docker-api.md](./docs/docker-api.md)** for full setup (compose, nginx, DNS).
+
+Quick start on the VPS:
+
+```bash
+cp .env.example .env   # CORS_ORIGINS + DATABASE_PATH (defaults are fine)
+docker compose up -d --build
+```
+
 ## Stack
 
 - Vite + React 19 + react-router-dom
 - @dnd-kit for drag-and-drop tier boards
-- Hono + libSQL/SQLite API
+- Hono + SQLite API (single `ranked.db` file — no DB server)
 
 ## Docs
 
+- [Docker API deploy (VPS)](./docs/docker-api.md)
 - [skinsales.gg integration plan](./docs/skinsales-integration.md)
