@@ -31,7 +31,7 @@ skinsales.gg  ──link──►  ranked.goodvibes.gg
 
 ## Phase 1 scope
 
-**In scope:** discovery links on skinsales.gg, deploy frontend + API, DNS, CORS, Turso prod DB.
+**In scope:** discovery links on skinsales.gg, deploy frontend + API, DNS, CORS, SQLite file DB on VPS.
 
 **Out of scope:** porting tier-list UI into skinsales.gg `src/`, reimplementing API in csfloat-monitor, reusing `/sales/ranked-float` routes (that name means global float rank sales, not user tier lists).
 
@@ -79,7 +79,7 @@ Deploy from the **kato-ranking** repo (separate CF Pages project from skinsales-
 | Source | `server/` in kato-ranking |
 | Host | Fly.io, Railway, CF Worker + adapter, or similar |
 | Domain | `api.ranked.goodvibes.gg` |
-| Database | Turso (production) |
+| Database | SQLite file (`data/ranked.db` on Docker volume) |
 | Health check | `GET /health` |
 
 **Option B — Port to csfloat-monitor (later)**
@@ -161,8 +161,7 @@ VITE_API_URL=https://api.ranked.goodvibes.gg
 
 CORS_ORIGINS=https://ranked.goodvibes.gg,http://localhost:3000
 
-TURSO_DATABASE_URL=<set in API host secrets>
-TURSO_AUTH_TOKEN=<set in API host secrets>
+DATABASE_PATH=data/ranked.db
 
 SKINSALES_DISCOVERY_URL=https://skinsales.gg
 
@@ -201,10 +200,10 @@ PRs:
 
 | Area | Change |
 |------|--------|
-| `.env.example` | Document production URLs and Turso vars |
+| `.env.example` | Document production URLs and `DATABASE_PATH` |
 | `src/config.ts` | `VITE_API_URL` for prod builds |
 | `server/index.ts` | CORS allowlist from `CORS_ORIGINS` env |
-| `server/db.ts` | Turso connection in production |
+| `server/db.ts` | SQLite file connection (optional Turso) |
 | Deploy config | CF Pages + API workflow for goodvibes domain |
 | Share / copy link | Canonical base `https://ranked.goodvibes.gg` |
 | Optional | “Back to skinsales.gg” link; fetch list items from catalog API |
@@ -231,7 +230,7 @@ PRs:
 
 - [ ] All prod URLs and env var names documented
 - [ ] CORS verified from prod frontend to prod API
-- [ ] Turso seeded / migrated for `kato-2014-holos`
+- [ ] SQLite migrated / seeded for `kato-2014-holos`
 
 ---
 
@@ -243,8 +242,8 @@ Implement Phase 1 integration of Animal Farm Ranked (kato-ranking repo) at ranke
 DO:
 1. Add home index row + optional nav link on skinsales.gg pointing to https://ranked.goodvibes.gg (env: VITE_RANKED_URL).
 2. Set up Cloudflare Pages for kato-ranking at ranked.goodvibes.gg (SPA fallback for client routes).
-3. Deploy kato-ranking Hono API at api.ranked.goodvibes.gg with Turso; configure CORS for ranked.goodvibes.gg.
-4. Return a completed "HANDOFF FOR KATO-RANKING" section with all prod URLs, CORS origins, Turso env names, DNS records, and PR links.
+3. Deploy kato-ranking Hono API at api.ranked.goodvibes.gg (Docker + SQLite file); configure CORS for ranked.goodvibes.gg.
+4. Return a completed "HANDOFF FOR KATO-RANKING" section with all prod URLs, CORS origins, DATABASE_PATH, DNS records, and PR links.
 
 DO NOT:
 - Port tier-list UI into skinsales.gg src/
@@ -260,6 +259,6 @@ Reference API: GET/POST /rankings/kato-2014-holos/* (community, submissions list
 
 | Repo | Role |
 |------|------|
-| **kato-ranking** | Tier-list SPA + Hono API + SQLite/Turso (source of truth for Phase 1) |
+| **kato-ranking** | Tier-list SPA + Hono API + SQLite file (source of truth for Phase 1) |
 | **skinsales-gg** | Discovery links only |
 | **csfloat-monitor** | Main skinsales API (backend port optional, later) |

@@ -5,6 +5,7 @@ const globalForDb = globalThis as unknown as {
 };
 
 function getClient() {
+  // Default: local SQLite file (DATABASE_PATH). Optional: Turso for hosted libSQL.
   if (process.env.TURSO_DATABASE_URL) {
     return createClient({
       url: process.env.TURSO_DATABASE_URL,

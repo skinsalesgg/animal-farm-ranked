@@ -1,0 +1,46 @@
+# Animal Farm Ranked API — standalone from csfloat-monitor / skinsales.
+# Frontend stays on GitHub Pages / Cloudflare; this compose file is API only.
+#
+# Database: one SQLite file at data/ranked.db on the ranked_api_data volume.
+# Start: cp .env.example .env && docker compose up -d --build
+# Nginx: see docs/docker-api.md to expose api.ranked.goodvibes.gg on your VPS.
+
+services:
+  ranked-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: animal_farm_ranked_api
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    cpus: 0.25
+    env_file:
+      - ${ENV_FILE:-.env}
+    environment:
+      NODE_ENV: production
+      PORT: 8787
+      HOST: 0.0.0.0
+      DATABASE_PATH: data/ranked.db
+    expose:
+      - "8787"
+    volumes:
+      - ranked_api_data:/app/data
+    networks:
+      - goodvibes-ranked
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  goodvibes-ranked:
+    name: goodvibes-ranked
+    driver: bridge
+
+volumes:
+  ranked_api_data:
