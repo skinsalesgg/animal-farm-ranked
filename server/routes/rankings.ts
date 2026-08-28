@@ -140,6 +140,7 @@ rankingsRoutes.post("/submissions", async (c) => {
   setCookie(c, SESSION_COOKIE, sessionId, {
     httpOnly: true,
     sameSite: "Lax",
+    secure: process.env.NODE_ENV === "production",
     maxAge: 60 * 60 * 24 * 365,
     path: "/",
   });
