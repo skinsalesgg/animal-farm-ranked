@@ -24,9 +24,38 @@ skinsales.gg                 → outbound links only
 csfloat-monitor compose      → unchanged
 ```
 
-## 1. Configure env
+## GitHub configuration
 
-On the VPS, clone or pull `kato-ranking` and create `.env`:
+### csfloat-monitor (VPS deploy — `.github/workflows/deploy.yml`)
+
+Set in **Settings → Secrets and variables → Actions**:
+
+| Name | Type | Required | Default / notes |
+|------|------|----------|----------------|
+| `RANKED_DEPLOY_PATH` | Secret | No | `$HOME/animal-farm-ranked` on VPS |
+| `RANKED_CORS_ORIGINS` | Variable | No | `https://ranked.goodvibes.gg,http://localhost:3000` |
+| `RANKED_SEED_ON_START` | Variable | No | `1` |
+| `RANKED_TURSO_DATABASE_URL` | Secret | No | Omit for single-file SQLite (recommended) |
+| `RANKED_TURSO_AUTH_TOKEN` | Secret | No | Only with Turso |
+
+Deploy writes `~/animal-farm-ranked/.env`:
+
+```env
+CORS_ORIGINS=…
+SEED_ON_START=…
+```
+
+`HOST`, `PORT`, `NODE_ENV`, and `DATABASE_PATH=data/ranked.db` are set in `compose.yml` (not from `.env`).
+
+### animal-farm-ranked (GitHub Pages frontend)
+
+| Name | Type | Required | Value |
+|------|------|----------|-------|
+| `VITE_API_URL` | Variable | Yes | `https://api.ranked.goodvibes.gg` |
+
+## 1. Configure env (manual / non-deploy)
+
+On the VPS, clone or pull `kato-ranking` and create `.env` (or let **csfloat-monitor deploy** write it — see [GitHub configuration](#github-configuration) above):
 
 ```bash
 cp .env.example .env
