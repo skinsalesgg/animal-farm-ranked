@@ -1,0 +1,64 @@
+name: Deploy API to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy ranked API
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+          SEED_ON_START: ${{ secrets.SEED_ON_START }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          envs: DEPLOY_PATH,CORS_ORIGINS,SEED_ON_START
+          script: |
+            set -e
+
+            DEPLOY_PATH="${DEPLOY_PATH:-$HOME/animal-farm-ranked}"
+            CORS_ORIGINS="${CORS_ORIGINS:-https://ranked.goodvibes.gg,http://localhost:3000}"
+            SEED_ON_START="${SEED_ON_START:-1}"
+            REPO_URL="https://github.com/skinsalesgg/animal-farm-ranked.git"
+            COMPOSE="docker compose -f compose.yml -p animal-farm-ranked"
+
+            if [ ! -d "$DEPLOY_PATH/.git" ]; then
+              git clone "$REPO_URL" "$DEPLOY_PATH"
+            fi
+
+            cd "$DEPLOY_PATH"
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+
+            cat > .env << EOF
+            CORS_ORIGINS=${CORS_ORIGINS}
+            SEED_ON_START=${SEED_ON_START}
+            EOF
+
+            $COMPOSE build ranked-api
+            $COMPOSE up -d --remove-orphans ranked-api
+
+            echo "Waiting for API health…"
+            for i in $(seq 1 30); do
+              if docker exec animal_farm_ranked_api wget -qO- http://127.0.0.1:8787/health 2>/dev/null | grep -q '"ok"'; then
+                echo "API healthy"
+                exit 0
+              fi
+              sleep 2
+            done
+
+            echo "ERROR: ranked API failed health check"
+            $COMPOSE logs --tail=80 ranked-api
+            exit 1
