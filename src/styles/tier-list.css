@@ -251,6 +251,7 @@
 
 .tier-page--rank .tier-dropzone > div:not(.tier-placeholder) {
   display: flex;
+  flex-shrink: 0;
   width: 3.5rem;
   height: 3.5rem;
   align-items: center;
@@ -276,6 +277,7 @@
 
 .tier-page--rank .tier-board .tier-item-card--image-only {
   display: flex;
+  flex-shrink: 0;
   width: 3.5rem;
   height: 3.5rem;
   min-width: 0;
@@ -509,39 +511,16 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) 24rem;
     gap: var(--space-5);
-    align-items: stretch;
+    align-items: start;
   }
 
   .tier-rank-layout .tier-board {
     grid-column: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 100%;
-  }
-
-  .tier-page--rank .tier-row {
-    flex: 1 1 0;
-    min-height: 0;
-  }
-
-  .tier-page--rank .tier-dropzone {
-    flex: 1;
-    min-height: 0;
   }
 
   .tier-rank-layout .tier-rank-sidebar {
     grid-column: 2;
     grid-row: 1;
-    height: 100%;
-  }
-
-  .tier-page--rank .tier-unranked-panel {
-    flex: 1 1 auto;
-  }
-
-  .tier-page--rank .tier-unranked-grid {
-    flex: 1 1 auto;
-    align-content: start;
   }
 }
 
