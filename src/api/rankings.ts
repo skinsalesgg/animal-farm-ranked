@@ -72,4 +72,18 @@ export const rankingsApi = {
       body: JSON.stringify(input),
     });
   },
+
+  updateSubmission(
+    listId: string,
+    id: string,
+    input: {
+      placements: Array<{ itemId: string; tier: Tier }>;
+      displayName?: string | null;
+    },
+  ) {
+    return request<SubmissionResponse>(`/rankings/${listId}/submissions/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+  },
 };
