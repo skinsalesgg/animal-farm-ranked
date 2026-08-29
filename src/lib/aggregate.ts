@@ -1,4 +1,8 @@
-import { normalizedScoresForSubmission, isValidTier, scoreToTier } from "./tiers";
+import {
+  assignCommunityTiersByScoreClustering,
+  isValidTier,
+  tierToScore,
+} from "./tiers";
 import type { AggregatedItem, Tier, TierItem, TierPlacement } from "./types";
 import { TIERS } from "./types";
 
@@ -17,13 +21,14 @@ export function aggregatePlacements(
   const totals = new Map<string, { scoreSum: number; votes: number }>();
 
   for (const submissionPlacements of bySubmission.values()) {
-    const normalized = normalizedScoresForSubmission(submissionPlacements);
+    for (const placement of submissionPlacements) {
+      if (!isValidTier(placement.tier)) continue;
 
-    for (const [itemId, score] of normalized) {
-      const current = totals.get(itemId) ?? { scoreSum: 0, votes: 0 };
+      const score = tierToScore(placement.tier);
+      const current = totals.get(placement.itemId) ?? { scoreSum: 0, votes: 0 };
       current.scoreSum += score;
       current.votes += 1;
-      totals.set(itemId, current);
+      totals.set(placement.itemId, current);
     }
   }
 
@@ -36,9 +41,21 @@ export function aggregatePlacements(
       item,
       score,
       votes,
-      communityTier: score > 0 ? scoreToTier(score) : "F",
+      communityTier: "F" as Tier,
     };
   });
+
+  const tierAssignments = assignCommunityTiersByScoreClustering(
+    aggregated
+      .filter((entry) => entry.votes > 0)
+      .map((entry) => ({ id: entry.item.id, score: entry.score })),
+  );
+
+  for (const entry of aggregated) {
+    if (entry.votes > 0) {
+      entry.communityTier = tierAssignments.get(entry.item.id) ?? "F";
+    }
+  }
 
   aggregated.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
