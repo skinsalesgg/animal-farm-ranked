@@ -18,12 +18,15 @@ jobs:
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
           SEED_ON_START: ${{ secrets.SEED_ON_START }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_SESSION_SECRET: ${{ secrets.ADMIN_SESSION_SECRET }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          envs: DEPLOY_PATH,CORS_ORIGINS,SEED_ON_START
+          envs: DEPLOY_PATH,CORS_ORIGINS,SEED_ON_START,ADMIN_USERNAME,ADMIN_PASSWORD,ADMIN_SESSION_SECRET
           script: |
             set -e
 
@@ -45,6 +48,9 @@ jobs:
             cat > .env << EOF
             CORS_ORIGINS=${CORS_ORIGINS}
             SEED_ON_START=${SEED_ON_START}
+            ADMIN_USERNAME=${ADMIN_USERNAME}
+            ADMIN_PASSWORD=${ADMIN_PASSWORD}
+            ADMIN_SESSION_SECRET=${ADMIN_SESSION_SECRET}
             EOF
 
             $COMPOSE build ranked-api

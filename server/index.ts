@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 import { createCorsOriginResolver } from "./cors";
+import { adminRoutes } from "./routes/admin";
 import { rankingsRoutes } from "./routes/rankings";
 
 const app = new Hono();
@@ -17,6 +18,7 @@ app.use(
 
 app.get("/health", (c) => c.json({ ok: true }));
 
+app.route("/admin", adminRoutes);
 app.route("/rankings/:listId", rankingsRoutes);
 
 const port = Number(process.env.PORT ?? 8787);

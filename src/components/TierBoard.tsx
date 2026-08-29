@@ -31,6 +31,9 @@ type ContainerId = (typeof CONTAINER_IDS)[number];
 
 type TierBoardProps = {
   initialState: TierBoardState;
+  initialDisplayName?: string;
+  submitLabel?: string;
+  showHoneypot?: boolean;
   onSubmit: (
     state: TierBoardState,
     displayName: string,
@@ -59,11 +62,17 @@ function findContainerInState(
   return null;
 }
 
-export function TierBoard({ initialState, onSubmit }: TierBoardProps) {
+export function TierBoard({
+  initialState,
+  initialDisplayName = "",
+  submitLabel = "Submit tier list",
+  showHoneypot = true,
+  onSubmit,
+}: TierBoardProps) {
   const { list, itemMap } = useTierListContext();
   const [state, setState] = useState<TierBoardState>(initialState);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState("");
+  const [displayName, setDisplayName] = useState(initialDisplayName);
   const [honeypot, setHoneypot] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -178,16 +187,18 @@ export function TierBoard({ initialState, onSubmit }: TierBoardProps) {
           />
 
           <div className="tier-submit-panel">
-            <input
-              type="text"
-              name="website"
-              tabIndex={-1}
-              autoComplete="off"
-              aria-hidden="true"
-              value={honeypot}
-              onChange={(event) => setHoneypot(event.target.value)}
-              className="tier-honeypot"
-            />
+            {showHoneypot ? (
+              <input
+                type="text"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                value={honeypot}
+                onChange={(event) => setHoneypot(event.target.value)}
+                className="tier-honeypot"
+              />
+            ) : null}
 
             {error ? <p className="tier-error">{error}</p> : null}
 
@@ -216,7 +227,7 @@ export function TierBoard({ initialState, onSubmit }: TierBoardProps) {
               disabled={!canSubmit || submitting || !displayName.trim()}
               className="tier-btn tier-btn-primary"
             >
-              {submitting ? "Submitting..." : "Submit tier list"}
+              {submitting ? "Saving..." : submitLabel}
             </button>
           </div>
         </aside>
