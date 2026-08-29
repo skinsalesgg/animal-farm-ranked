@@ -5,11 +5,13 @@ import { nanoid } from "nanoid";
 import { getItemMap, getTierListById } from "../../src/lists";
 import { isValidTier } from "../../src/lib/tiers";
 import type { Tier } from "../../src/lib/types";
+import { requireAdmin } from "../auth";
 import {
   createSubmission,
   getCommunityData,
   getSubmissionById,
   listRecentSubmissions,
+  updateSubmissionPlacements,
 } from "../queries";
 
 const SESSION_COOKIE = "afr_session";
@@ -146,4 +148,70 @@ rankingsRoutes.post("/submissions", async (c) => {
   });
 
   return c.json(result);
+});
+
+rankingsRoutes.patch("/submissions/:id", requireAdmin(), async (c) => {
+  const listId = getListId(c);
+  if (!listId) {
+    return c.json({ error: "Tier list not found." }, 404);
+  }
+  const list = getTierListById(listId);
+  if (!list) {
+    return c.json({ error: "Tier list not found." }, 404);
+  }
+
+  const itemMap = getItemMap(list);
+  const submissionId = c.req.param("id");
+
+  const body = await c.req.json<{
+    displayName?: string | null;
+    placements?: Array<{ itemId: string; tier: string }>;
+  }>();
+
+  const placements = body.placements ?? [];
+  if (placements.length !== itemMap.size) {
+    return c.json({ error: "Every item must be placed in a tier." }, 400);
+  }
+
+  const seen = new Set<string>();
+  for (const placement of placements) {
+    if (!itemMap.has(placement.itemId)) {
+      return c.json({ error: "Invalid item." }, 400);
+    }
+    if (!isValidTier(placement.tier)) {
+      return c.json({ error: "Invalid tier." }, 400);
+    }
+    if (seen.has(placement.itemId)) {
+      return c.json({ error: "Duplicate item placement." }, 400);
+    }
+    seen.add(placement.itemId);
+  }
+
+  try {
+    const updated = await updateSubmissionPlacements({
+      listId,
+      submissionId,
+      displayName: body.displayName,
+      placements: placements.map((placement) => ({
+        itemId: placement.itemId,
+        tier: placement.tier as Tier,
+      })),
+    });
+
+    if (!updated) {
+      return c.json({ error: "Not found" }, 404);
+    }
+
+    return c.json({
+      ...updated,
+      createdAt: updated.createdAt.toISOString(),
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to update submission.";
+    if (message.includes("not found")) {
+      return c.json({ error: "Not found" }, 404);
+    }
+    return c.json({ error: message }, 400);
+  }
 });

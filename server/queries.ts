@@ -195,3 +195,84 @@ export async function createSubmission(input: {
 
   return { id: submissionId };
 }
+
+export async function updateSubmissionPlacements(input: {
+  listId: string;
+  submissionId: string;
+  displayName?: string | null;
+  placements: Array<{ itemId: string; tier: Tier }>;
+}) {
+  await ensureListItemsSeeded(input.listId);
+
+  const list = getTierListById(input.listId);
+  if (!list) {
+    throw new Error(`Unknown tier list: ${input.listId}`);
+  }
+
+  const itemMap = new Map(list.items.map((item) => [item.id, item]));
+
+  const submissionResult = await client.execute({
+    sql: "SELECT id FROM submissions WHERE id = ? AND list_id = ? LIMIT 1",
+    args: [input.submissionId, input.listId],
+  });
+
+  if (!submissionResult.rows[0]) {
+    throw new Error(`Submission not found: ${input.submissionId}`);
+  }
+
+  if (input.placements.length !== itemMap.size) {
+    throw new Error(
+      `Expected ${itemMap.size} placements, got ${input.placements.length}.`,
+    );
+  }
+
+  const seen = new Set<string>();
+  for (const placement of input.placements) {
+    if (!itemMap.has(placement.itemId)) {
+      throw new Error(`Invalid item: ${placement.itemId}`);
+    }
+    if (!isValidTier(placement.tier)) {
+      throw new Error(`Invalid tier for ${placement.itemId}: ${placement.tier}`);
+    }
+    if (seen.has(placement.itemId)) {
+      throw new Error(`Duplicate item: ${placement.itemId}`);
+    }
+    seen.add(placement.itemId);
+  }
+
+  await client.execute("BEGIN");
+
+  try {
+    if (input.displayName !== undefined) {
+      await client.execute({
+        sql: "UPDATE submissions SET display_name = ? WHERE id = ? AND list_id = ?",
+        args: [input.displayName?.trim().slice(0, 40) || null, input.submissionId, input.listId],
+      });
+    }
+
+    await client.execute({
+      sql: "DELETE FROM placements WHERE submission_id = ? AND list_id = ?",
+      args: [input.submissionId, input.listId],
+    });
+
+    for (const placement of input.placements) {
+      await client.execute({
+        sql: `INSERT INTO placements (submission_id, list_id, item_id, tier, rank_in_tier)
+              VALUES (?, ?, ?, ?, 0)`,
+        args: [
+          input.submissionId,
+          input.listId,
+          placement.itemId,
+          placement.tier,
+        ],
+      });
+    }
+
+    await client.execute("COMMIT");
+  } catch (error) {
+    await client.execute("ROLLBACK");
+    throw error;
+  }
+
+  return getSubmissionById(input.listId, input.submissionId);
+}
