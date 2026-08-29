@@ -129,161 +129,15 @@ function kMeans1D(values: number[], k: number): number[] {
   return centroids;
 }
 
-/**
- * Adjacent letter tiers differ by 1 on the vote scale (S=7, A=6, B=5, …).
- * Used as a ruler when judging whether two scores are meaningfully apart.
- */
-const TIER_SCORE_STEP = 1;
-
-/** Ignore tiny spreads smaller than a quarter-tier when deciding to split the top cluster. */
-const TOP_CLUSTER_MIN_SPREAD = TIER_SCORE_STEP / 4;
-
-/** Split the lowest cluster when a gap inside it is this many times the average inner gap. */
-const BOTTOM_CLUSTER_GAP_RATIO = 1.5;
-
-/** Minimum inner gap (on the 1–7 score scale) to split the lowest cluster. */
-const BOTTOM_CLUSTER_MIN_GAP = 0.75;
-
 function sortCentroidsByScore(centroids: number[]) {
   return centroids
     .map((centroid, index) => ({ index, centroid }))
     .sort((a, b) => b.centroid - a.centroid || a.index - b.index);
 }
 
-/** Map k score clusters (high → low) onto S–F, with extra precision at the top when k > 7. */
-function clusterTierLabels(clusterCount: number): Tier[] {
-  if (clusterCount <= TIERS.length) {
-    return TIERS.slice(0, clusterCount) as Tier[];
-  }
-
-  // One extra cluster: split the top (S vs A) and keep two low groups in E before F.
-  const labels = TIERS.slice(0, TIERS.length - 1) as Tier[];
-  labels.splice(TIERS.length - 2, 0, "E");
-  labels.push("F");
-  return labels.slice(0, clusterCount);
-}
-
-function medianAdjacentGap(scores: number[]): number {
-  const sorted = [...scores].sort((a, b) => b - a);
-  const gaps: number[] = [];
-
-  for (let index = 0; index < sorted.length - 1; index += 1) {
-    gaps.push(sorted[index] - sorted[index + 1]);
-  }
-
-  if (gaps.length === 0) {
-    return TIER_SCORE_STEP / 3;
-  }
-
-  gaps.sort((a, b) => a - b);
-  const mid = Math.floor(gaps.length / 2);
-  return gaps.length % 2 === 1
-    ? gaps[mid]
-    : (gaps[mid - 1] + gaps[mid]) / 2;
-}
-
 /**
- * Minimum spread inside the top cluster before we add an extra cluster.
- * Uses the median gap between neighboring scores on this list (data-driven),
- * floored at a quarter-tier so near-ties (e.g. 6.40 vs 6.41) stay grouped.
- */
-function topClusterSplitThreshold(scores: number[]): number {
-  return Math.max(TOP_CLUSTER_MIN_SPREAD, medianAdjacentGap(scores));
-}
-
-function chooseClusterCount(values: number[], scoredCount: number): number {
-  let clusterCount = Math.min(TIERS.length, scoredCount);
-  let centroids = kMeans1D(values, clusterCount);
-  const splitThreshold = topClusterSplitThreshold(values);
-
-  while (clusterCount < Math.min(TIERS.length + 1, scoredCount)) {
-    const ranked = sortCentroidsByScore(centroids);
-    const topClusterIndex = ranked[0]?.index;
-    if (topClusterIndex === undefined) {
-      break;
-    }
-
-    const topMembers = values.filter(
-      (value) => nearestCentroidIndex(value, centroids) === topClusterIndex,
-    );
-
-    if (topMembers.length <= 1) {
-      break;
-    }
-
-    const topSpread = Math.max(...topMembers) - Math.min(...topMembers);
-    if (topSpread <= splitThreshold) {
-      break;
-    }
-
-    clusterCount += 1;
-    centroids = kMeans1D(values, clusterCount);
-  }
-
-  return clusterCount;
-}
-
-function splitLowestClusterOutliers(
-  scored: ScoredItem[],
-  centroids: number[],
-  tiers: Map<string, Tier>,
-): void {
-  const ranked = sortCentroidsByScore(centroids);
-  const lowestClusterIndex = ranked[ranked.length - 1]?.index;
-  if (lowestClusterIndex === undefined) {
-    return;
-  }
-
-  const lowestMembers = scored
-    .filter(
-      (item) =>
-        nearestCentroidIndex(item.score, centroids) === lowestClusterIndex,
-    )
-    .sort((a, b) => b.score - a.score);
-
-  if (lowestMembers.length <= 1) {
-    return;
-  }
-
-  let largestGap = 0;
-  let splitAfter = -1;
-  for (let index = 0; index < lowestMembers.length - 1; index += 1) {
-    const gap = lowestMembers[index].score - lowestMembers[index + 1].score;
-    if (gap > largestGap) {
-      largestGap = gap;
-      splitAfter = index;
-    }
-  }
-
-  const range =
-    lowestMembers[0].score -
-    lowestMembers[lowestMembers.length - 1].score;
-  const averageGap = range / (lowestMembers.length - 1);
-
-  if (
-    largestGap <= averageGap * BOTTOM_CLUSTER_GAP_RATIO ||
-    largestGap <= BOTTOM_CLUSTER_MIN_GAP
-  ) {
-    return;
-  }
-
-  const upperTier =
-    ranked.length >= 2
-      ? tiers.get(lowestMembers[0].id) ?? "E"
-      : "E";
-
-  for (let index = 0; index <= splitAfter; index += 1) {
-    tiers.set(lowestMembers[index].id, upperTier === "F" ? "E" : upperTier);
-  }
-  for (let index = splitAfter + 1; index < lowestMembers.length; index += 1) {
-    tiers.set(lowestMembers[index].id, "F");
-  }
-}
-
-/**
- * Cluster community mean scores (S=7 … F=1), then label each cluster S–F from
- * high to low. Adds an extra top cluster when the highest group contains multiple
- * stickers separated by more than a typical score gap on this list.
+ * Cluster community mean scores (S=7 … F=1) with k-means (k=7), then label
+ * each cluster S–F from highest to lowest centroid.
  */
 export function assignCommunityTiersByScoreClustering(
   items: ScoredItem[],
@@ -307,21 +161,18 @@ export function assignCommunityTiersByScoreClustering(
     return tiers;
   }
 
+  const clusterCount = Math.min(TIERS.length, scored.length);
   const values = scored.map((item) => item.score);
-  const clusterCount = chooseClusterCount(values, scored.length);
   const centroids = kMeans1D(values, clusterCount);
   const ranked = sortCentroidsByScore(centroids);
-  const labels = clusterTierLabels(clusterCount);
   const tierByCluster = new Map(
-    ranked.map((entry, rank) => [entry.index, labels[rank] ?? "F"]),
+    ranked.map((entry, rank) => [entry.index, TIERS[rank] ?? "F"]),
   );
 
   for (const item of scored) {
     const clusterIndex = nearestCentroidIndex(item.score, centroids);
     tiers.set(item.id, tierByCluster.get(clusterIndex) ?? "F");
   }
-
-  splitLowestClusterOutliers(scored, centroids, tiers);
 
   return tiers;
 }
