@@ -43,7 +43,7 @@ jobs:
             cd "$DEPLOY_PATH"
             git fetch origin main
             git checkout main
-            git pull --ff-only origin main
+            git reset --hard origin/main
 
             cat > .env << EOF
             CORS_ORIGINS=${CORS_ORIGINS}
