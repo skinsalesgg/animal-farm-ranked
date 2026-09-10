@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { adminApi } from "../api/admin";
 import { PageMeta } from "../components/PageMeta";
@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
           return;
         }
         if (session.authenticated) {
-          navigate("/admin/kato-2014-holos", { replace: true });
+          navigate("/admin", { replace: true });
         }
       })
       .catch(() => {
@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
 
     try {
       await adminApi.login(username, password);
-      navigate("/admin/kato-2014-holos", { replace: true });
+      navigate("/admin", { replace: true });
     } catch (loginError) {
       setError(
         loginError instanceof Error
@@ -112,6 +112,3 @@ export default function AdminLoginPage() {
   );
 }
 
-export function AdminRedirect() {
-  return <Navigate to="/admin/kato-2014-holos" replace />;
-}
