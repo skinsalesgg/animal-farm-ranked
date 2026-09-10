@@ -63,7 +63,13 @@ export default function AdminDashboardPage() {
       <PageMeta title={`Admin · ${list.name}`} />
       <header className="tier-page-header tier-page-header--community">
         <div className="tier-page-header-copy">
-          <p className="tier-eyebrow">Admin</p>
+          <p className="tier-eyebrow">
+            <Link to="/admin" className="tier-link">
+              Admin
+            </Link>
+            {" · "}
+            {list.eyebrow}
+          </p>
           <h1 className="tier-page-title">{list.name}</h1>
           <p className="tier-meta tier-page-submeta">
             Edit individual community submissions.

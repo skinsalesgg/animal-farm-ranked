@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+
+import { AdminNavMenu } from "./AdminNavMenu";
 import "./Navigation.css";
 
 export default function Navigation() {
@@ -9,6 +11,9 @@ export default function Navigation() {
           <Link to="/" className="nav-logo">
             Animal Farm<span className="nav-logo-tld"> Ranked</span>
           </Link>
+          <div className="nav-links-desktop">
+            <AdminNavMenu />
+          </div>
         </div>
       </div>
     </nav>
