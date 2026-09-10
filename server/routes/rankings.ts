@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import { nanoid } from "nanoid";
 
@@ -150,7 +150,7 @@ rankingsRoutes.post("/submissions", async (c) => {
   return c.json(result);
 });
 
-rankingsRoutes.patch("/submissions/:id", requireAdmin(), async (c) => {
+async function updateSubmissionHandler(c: Context) {
   const listId = getListId(c);
   if (!listId) {
     return c.json({ error: "Tier list not found." }, 404);
@@ -162,6 +162,9 @@ rankingsRoutes.patch("/submissions/:id", requireAdmin(), async (c) => {
 
   const itemMap = getItemMap(list);
   const submissionId = c.req.param("id");
+  if (!submissionId) {
+    return c.json({ error: "Not found" }, 404);
+  }
 
   const body = await c.req.json<{
     displayName?: string | null;
@@ -214,4 +217,8 @@ rankingsRoutes.patch("/submissions/:id", requireAdmin(), async (c) => {
     }
     return c.json({ error: message }, 400);
   }
-});
+}
+
+// POST is used by the admin UI because nginx CORS preflight only allows GET/POST.
+rankingsRoutes.post("/submissions/:id", requireAdmin(), updateSubmissionHandler);
+rankingsRoutes.patch("/submissions/:id", requireAdmin(), updateSubmissionHandler);
