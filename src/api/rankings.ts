@@ -82,7 +82,7 @@ export const rankingsApi = {
     },
   ) {
     return request<SubmissionResponse>(`/rankings/${listId}/submissions/${id}`, {
-      method: "PATCH",
+      method: "POST",
       body: JSON.stringify(input),
     });
   },
