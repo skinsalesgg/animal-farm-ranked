@@ -1,8 +1,9 @@
 import kato2014Holos from "./kato-2014-holos";
+import kato2014Papers from "./kato-2014-papers";
 import type { TierListDefinition, TierListItem } from "./types";
 
 /** Add new tier list modules here. */
-export const TIER_LISTS: TierListDefinition[] = [kato2014Holos];
+export const TIER_LISTS: TierListDefinition[] = [kato2014Holos, kato2014Papers];
 
 const byId = new Map(TIER_LISTS.map((list) => [list.id, list]));
 const bySlug = new Map(TIER_LISTS.map((list) => [list.slug, list]));
