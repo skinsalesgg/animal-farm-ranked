@@ -12,8 +12,6 @@ function formatCount(value: number): string {
 }
 
 export default function HomePage() {
-  const primaryList = TIER_LISTS[0];
-
   return (
     <div className="home-page">
       <PageMeta title={SITE_NAME} description={SITE_TAGLINE} />
@@ -28,38 +26,36 @@ export default function HomePage() {
           See what the community thinks.
         </h1>
         <p className="home-hero-subtitle">{SITE_TAGLINE}</p>
-        {primaryList ? (
-          <div className="home-hero-actions">
-            <Link to={`/${primaryList.slug}`} className="home-cta-primary">
-              View community rankings
-            </Link>
-            <Link to={`/${primaryList.slug}/rank`} className="home-cta-secondary">
-              Submit your tier list
-            </Link>
-          </div>
-        ) : null}
       </section>
 
       <section className="home-categories">
-        <h2 className="home-section-label">Index</h2>
+        <h2 className="home-section-label">Tier lists</h2>
         <div className="home-index">
           {TIER_LISTS.map((list, index) => (
-            <Link
-              key={list.id}
-              to={`/${list.slug}`}
-              className="home-index-row"
-            >
+            <article key={list.id} className="home-index-row">
               <span className="home-index-num" aria-hidden="true">
                 {String(index + 1).padStart(2, "0")}
               </span>
-              <span className="home-index-title">{list.name}</span>
-              <span className="home-index-blurb">
-                {list.description} · {formatCount(list.items.length)} items
-              </span>
-              <span className="home-index-path" aria-hidden="true">
-                /{list.slug}
-              </span>
-            </Link>
+              <div className="home-index-copy">
+                <Link to={`/${list.slug}`} className="home-index-title">
+                  {list.name}
+                </Link>
+                <p className="home-index-blurb">
+                  {list.description} · {formatCount(list.items.length)} items
+                </p>
+              </div>
+              <div className="home-index-actions">
+                <Link to={`/${list.slug}`} className="home-index-action">
+                  Rankings
+                </Link>
+                <Link
+                  to={`/${list.slug}/rank`}
+                  className="home-index-action home-index-action--primary"
+                >
+                  Rank yours
+                </Link>
+              </div>
+            </article>
           ))}
         </div>
       </section>

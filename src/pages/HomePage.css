@@ -59,51 +59,6 @@
   line-height: 1.55;
 }
 
-.home-hero-actions {
-  display: flex;
-  gap: 0.625rem;
-  flex-wrap: wrap;
-}
-
-.home-cta-primary,
-.home-cta-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5625rem 1.125rem;
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  text-decoration: none;
-  transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard);
-}
-
-.home-cta-primary {
-  background: var(--accent-primary);
-  border: 1px solid transparent;
-  color: var(--text-on-accent);
-}
-
-.home-cta-primary:hover {
-  background: var(--accent-primary-hover);
-  color: var(--text-on-accent);
-}
-
-.home-cta-secondary {
-  border: 1px solid var(--border-strong);
-  color: var(--text-primary);
-  background: transparent;
-}
-
-.home-cta-secondary:hover {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
-
 .home-categories {
   margin-top: 3rem;
 }
@@ -127,12 +82,10 @@
 
 .home-index-row {
   display: grid;
-  grid-template-columns: 2.75rem 11.5rem 1fr auto;
-  align-items: baseline;
+  grid-template-columns: 2.75rem 1fr auto;
+  align-items: center;
   gap: 1rem;
   padding: 0.9375rem 1.25rem;
-  text-decoration: none;
-  transition: background-color var(--duration-fast) var(--ease-standard);
 }
 
 .home-index-row + .home-index-row {
@@ -141,6 +94,10 @@
 
 .home-index-row:hover {
   background: var(--surface-raised-alt);
+}
+
+.home-index-copy {
+  min-width: 0;
 }
 
 .home-index-num {
@@ -154,26 +111,17 @@
   color: var(--accent-primary);
 }
 
-.home-index-path {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  justify-self: end;
-  transition: color var(--duration-fast) var(--ease-standard);
-}
-
-.home-index-row:hover .home-index-path {
-  color: var(--text-secondary);
-}
-
 .home-index-title {
+  display: inline-block;
   font-size: var(--text-md);
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 
-.home-index-row:hover .home-index-title {
+.home-index-title:hover {
   color: var(--accent-primary);
 }
 
@@ -181,7 +129,49 @@
   font-size: var(--text-sm);
   color: var(--text-tertiary);
   line-height: 1.5;
-  min-width: 0;
+  margin: 0.2rem 0 0;
+}
+
+.home-index-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.home-index-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.home-index-action:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.home-index-action--primary {
+  background: var(--accent-primary);
+  border-color: transparent;
+  color: var(--text-on-accent);
+}
+
+.home-index-action--primary:hover {
+  background: var(--accent-primary-hover);
+  border-color: transparent;
+  color: var(--text-on-accent);
 }
 
 @media (max-width: 768px) {
@@ -197,25 +187,20 @@
     inset: 0 -1.25rem;
   }
 
-  .home-cta-primary,
-  .home-cta-secondary {
-    flex: 1 1 auto;
-    min-height: 44px;
-  }
-
   .home-index-row {
     grid-template-columns: 2rem 1fr;
-    grid-template-rows: auto auto;
-    row-gap: 0.25rem;
-    align-items: baseline;
+    grid-template-rows: auto auto auto;
+    row-gap: 0.375rem;
+    align-items: start;
     padding: 0.875rem 1rem;
   }
 
-  .home-index-blurb {
+  .home-index-copy {
     grid-column: 2;
   }
 
-  .home-index-path {
-    display: none;
+  .home-index-actions {
+    grid-column: 2;
+    flex-wrap: wrap;
   }
 }
