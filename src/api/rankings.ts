@@ -53,9 +53,10 @@ export const rankingsApi = {
     return request<SubmissionResponse>(`/rankings/${listId}/submissions/${id}`);
   },
 
-  listSubmissions(listId: string, limit = 20) {
+  listSubmissions(listId: string, limit: number | "all" = 20) {
+    const limitParam = limit === "all" ? "all" : String(limit);
     return request<SubmissionsListResponse>(
-      `/rankings/${listId}/submissions?limit=${limit}`,
+      `/rankings/${listId}/submissions?limit=${limitParam}`,
     );
   },
 
@@ -85,5 +86,14 @@ export const rankingsApi = {
       method: "POST",
       body: JSON.stringify(input),
     });
+  },
+
+  deleteSubmission(listId: string, id: string) {
+    return request<{ ok: true }>(
+      `/rankings/${listId}/submissions/${id}/delete`,
+      {
+        method: "POST",
+      },
+    );
   },
 };

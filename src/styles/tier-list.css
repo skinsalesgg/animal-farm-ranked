@@ -779,6 +779,14 @@
   flex-shrink: 0;
 }
 
+.admin-submission-delete {
+  color: var(--status-danger, #c0392b);
+}
+
+.admin-submission-delete:not(:disabled):hover {
+  color: var(--status-danger-strong, #962d22);
+}
+
 .admin-edit-view-link {
   align-self: center;
 }

@@ -8,6 +8,7 @@ import type { Tier } from "../../src/lib/types";
 import { requireAdmin } from "../auth";
 import {
   createSubmission,
+  deleteSubmission,
   getCommunityData,
   getSubmissionById,
   listRecentSubmissions,
@@ -50,10 +51,11 @@ rankingsRoutes.get("/submissions", async (c) => {
     return c.json({ error: "Tier list not found." }, 404);
   }
 
-  const limit = Math.min(
-    Math.max(Number(c.req.query("limit") ?? 20), 1),
-    50,
-  );
+  const limitParam = c.req.query("limit");
+  const limit =
+    limitParam === "all"
+      ? undefined
+      : Math.min(Math.max(Number(limitParam ?? 20), 1), 1000);
   const submissions = await listRecentSubmissions(listId, limit);
   return c.json({ submissions });
 });
@@ -222,3 +224,30 @@ async function updateSubmissionHandler(c: Context) {
 // POST is used by the admin UI because nginx CORS preflight only allows GET/POST.
 rankingsRoutes.post("/submissions/:id", requireAdmin(), updateSubmissionHandler);
 rankingsRoutes.patch("/submissions/:id", requireAdmin(), updateSubmissionHandler);
+
+rankingsRoutes.post(
+  "/submissions/:id/delete",
+  requireAdmin(),
+  async (c) => {
+    const listId = getListId(c);
+    if (!listId) {
+      return c.json({ error: "Tier list not found." }, 404);
+    }
+    const list = getTierListById(listId);
+    if (!list) {
+      return c.json({ error: "Tier list not found." }, 404);
+    }
+
+    const submissionId = c.req.param("id");
+    if (!submissionId) {
+      return c.json({ error: "Not found" }, 404);
+    }
+
+    const deleted = await deleteSubmission(listId, submissionId);
+    if (!deleted) {
+      return c.json({ error: "Not found" }, 404);
+    }
+
+    return c.json({ ok: true });
+  },
+);

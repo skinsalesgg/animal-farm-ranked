@@ -79,16 +79,24 @@ export async function getSubmissionCount(listId: string) {
   return Number(result.rows[0]?.count ?? 0);
 }
 
-export async function listRecentSubmissions(listId: string, limit = 20) {
+export async function listRecentSubmissions(
+  listId: string,
+  limit?: number,
+) {
   await ensureListItemsSeeded(listId);
 
   const result = await client.execute({
-    sql: `SELECT id, display_name, created_at
-          FROM submissions
-          WHERE list_id = ?
-          ORDER BY created_at DESC
-          LIMIT ?`,
-    args: [listId, limit],
+    sql: limit
+      ? `SELECT id, display_name, created_at
+         FROM submissions
+         WHERE list_id = ?
+         ORDER BY created_at DESC
+         LIMIT ?`
+      : `SELECT id, display_name, created_at
+         FROM submissions
+         WHERE list_id = ?
+         ORDER BY created_at DESC`,
+    args: limit ? [listId, limit] : [listId],
   });
 
   return result.rows.map((row) => {
@@ -275,4 +283,28 @@ export async function updateSubmissionPlacements(input: {
   }
 
   return getSubmissionById(input.listId, input.submissionId);
+}
+
+export async function deleteSubmission(listId: string, submissionId: string) {
+  await ensureListItemsSeeded(listId);
+
+  await client.execute("BEGIN");
+
+  try {
+    await client.execute({
+      sql: "DELETE FROM placements WHERE submission_id = ? AND list_id = ?",
+      args: [submissionId, listId],
+    });
+
+    const result = await client.execute({
+      sql: "DELETE FROM submissions WHERE id = ? AND list_id = ?",
+      args: [submissionId, listId],
+    });
+
+    await client.execute("COMMIT");
+    return result.rowsAffected > 0;
+  } catch (error) {
+    await client.execute("ROLLBACK");
+    throw error;
+  }
 }
