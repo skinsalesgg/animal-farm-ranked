@@ -18,6 +18,7 @@ export default function AdminEditPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -79,6 +80,30 @@ export default function AdminEditPage() {
     window.setTimeout(() => setSaved(false), 2000);
   }
 
+  async function handleDelete() {
+    if (!id) return;
+
+    const confirmed = window.confirm(
+      `Delete "${displayName.trim() || "Anonymous"}"? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setError(null);
+
+    try {
+      await rankingsApi.deleteSubmission(list.id, id);
+      navigate(`/admin/${list.slug}`, { replace: true });
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Failed to delete submission.",
+      );
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="tier-page tier-page--rank admin-page admin-edit">
       <PageMeta title={`${pageTitle} · ${list.name}`} />
@@ -100,12 +125,22 @@ export default function AdminEditPage() {
             Back to list
           </Link>
           {id ? (
-            <Link
-              to={`/${list.slug}/r/${id}`}
-              className="tier-link admin-edit-view-link"
-            >
-              View live
-            </Link>
+            <>
+              <Link
+                to={`/${list.slug}/r/${id}`}
+                className="tier-link admin-edit-view-link"
+              >
+                View live
+              </Link>
+              <button
+                type="button"
+                className="tier-btn tier-btn-ghost admin-submission-delete"
+                disabled={deleting}
+                onClick={() => void handleDelete()}
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </>
           ) : null}
         </div>
       </header>

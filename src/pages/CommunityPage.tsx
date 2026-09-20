@@ -21,7 +21,7 @@ export default function CommunityPage() {
   useEffect(() => {
     Promise.all([
       rankingsApi.getCommunity(list.id),
-      rankingsApi.listSubmissions(list.id),
+      rankingsApi.listSubmissions(list.id, "all"),
     ])
       .then(([community, submissionsList]) => {
         setSubmissionCount(community.submissionCount);

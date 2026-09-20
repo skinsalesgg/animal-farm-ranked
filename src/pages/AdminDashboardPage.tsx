@@ -12,6 +12,7 @@ export default function AdminDashboardPage() {
   const [submissions, setSubmissions] = useState<SubmissionSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -24,7 +25,7 @@ export default function AdminDashboardPage() {
           return;
         }
 
-        const response = await rankingsApi.listSubmissions(list.id, 50);
+        const response = await rankingsApi.listSubmissions(list.id, "all");
         if (!cancelled) {
           setSubmissions(response.submissions);
         }
@@ -56,6 +57,32 @@ export default function AdminDashboardPage() {
       // Cookie may already be cleared.
     }
     navigate("/admin/login", { replace: true });
+  }
+
+  async function handleDelete(submission: SubmissionSummary) {
+    const name = submission.displayName?.trim() || "Anonymous";
+    const confirmed = window.confirm(
+      `Delete "${name}"? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingId(submission.id);
+    setError(null);
+
+    try {
+      await rankingsApi.deleteSubmission(list.id, submission.id);
+      setSubmissions((current) =>
+        current.filter((entry) => entry.id !== submission.id),
+      );
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Failed to delete submission.",
+      );
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   return (
@@ -117,6 +144,14 @@ export default function AdminDashboardPage() {
                     >
                       View
                     </Link>
+                    <button
+                      type="button"
+                      className="tier-btn tier-btn-ghost admin-submission-delete"
+                      disabled={deletingId === submission.id}
+                      onClick={() => void handleDelete(submission)}
+                    >
+                      {deletingId === submission.id ? "Deleting…" : "Delete"}
+                    </button>
                   </div>
                 </div>
               );
