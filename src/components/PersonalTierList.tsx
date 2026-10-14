@@ -10,11 +10,13 @@ type PersonalTierListProps = {
 };
 
 export function PersonalTierList({ placements }: PersonalTierListProps) {
-  const { itemMap } = useTierListContext();
+  const { list, itemMap } = useTierListContext();
   const state = placementsToTierState(placements, itemMap);
 
   return (
-    <div className="tier-board">
+    <div
+      className={`tier-board${list.labeledImages ? " tier-board--labeled-images" : ""}`}
+    >
       {TIERS.map((tier) => (
         <div key={tier} className="tier-row">
           <div className={`tier-label tier-label--${tier.toLowerCase()}`}>
@@ -27,6 +29,7 @@ export function PersonalTierList({ placements }: PersonalTierListProps) {
                   key={itemId}
                   itemId={itemId}
                   itemMap={itemMap}
+                  imageOnly={list.labeledImages}
                 />
               ))
             ) : (

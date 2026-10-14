@@ -17,5 +17,7 @@ export type TierListDefinition = {
   communityTitle: string;
   communityLead: string;
   unrankedCopy: (remaining: number, total: number) => string;
+  /** Item names are printed on the images: hide captions and enlarge tiles. */
+  labeledImages?: boolean;
   items: TierListItem[];
 };

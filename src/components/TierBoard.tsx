@@ -167,7 +167,9 @@ export function TierBoard({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="tier-rank-layout">
+      <div
+        className={`tier-rank-layout${list.labeledImages ? " tier-rank-layout--labeled-images" : ""}`}
+      >
         <div className="tier-board">
           {TIERS.map((tier) => (
             <TierRow
@@ -184,6 +186,7 @@ export function TierBoard({
             itemIds={state.unranked}
             itemMap={itemMap}
             copy={list.unrankedCopy(state.unranked.length, list.items.length)}
+            imageOnly={list.labeledImages}
           />
 
           <div className="tier-submit-panel">
@@ -233,7 +236,10 @@ export function TierBoard({
         </aside>
       </div>
 
-      <DragOverlay dropAnimation={null} className="tier-drag-overlay">
+      <DragOverlay
+        dropAnimation={null}
+        className={`tier-drag-overlay${list.labeledImages ? " tier-drag-overlay--labeled-images" : ""}`}
+      >
         {activeItem ? <TierDragPreview item={activeItem} /> : null}
       </DragOverlay>
     </DndContext>
@@ -244,10 +250,12 @@ function UnrankedPool({
   itemIds,
   itemMap,
   copy,
+  imageOnly = false,
 }: {
   itemIds: string[];
   itemMap: Map<string, import("../lib/types").TierItem>;
   copy: string;
+  imageOnly?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: "unranked" });
 
@@ -264,6 +272,7 @@ function UnrankedPool({
               key={itemId}
               itemId={itemId}
               itemMap={itemMap}
+              imageOnly={imageOnly}
             />
           ))}
         </div>
