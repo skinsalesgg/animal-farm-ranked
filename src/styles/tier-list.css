@@ -536,6 +536,53 @@
   }
 }
 
+/* Lists whose names are printed on the images: no captions, bigger tiles. */
+.tier-rank-layout--labeled-images .tier-row,
+.tier-rank-layout--labeled-images .tier-dropzone {
+  min-height: 6rem;
+}
+
+.tier-rank-layout--labeled-images .tier-dropzone:not(:has(.tier-placeholder)) {
+  grid-template-columns: repeat(auto-fill, 5rem);
+}
+
+.tier-rank-layout--labeled-images .tier-dropzone > div:not(.tier-placeholder),
+.tier-rank-layout--labeled-images .tier-board .tier-item-card--image-only,
+.tier-rank-layout--labeled-images
+  .tier-board
+  .tier-item-card--image-only
+  .tier-item-image-wrap {
+  width: 5rem;
+  height: 5rem;
+}
+
+.tier-rank-layout--labeled-images .tier-unranked-grid {
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+}
+
+.tier-rank-layout--labeled-images .tier-unranked-grid .tier-item-image-wrap {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.tier-rank-layout--labeled-images .tier-item-image,
+.tier-drag-overlay--labeled-images .tier-drag-preview-image {
+  border-radius: var(--radius-sm);
+  mix-blend-mode: normal;
+}
+
+.tier-drag-overlay--labeled-images .tier-drag-preview {
+  width: 5rem;
+  height: 5rem;
+  background: none;
+}
+
+.tier-drag-overlay--labeled-images .tier-drag-preview-image {
+  width: 5rem;
+  height: 5rem;
+}
+
 /* --- Community page --- */
 .tier-page--community {
   max-width: 72rem;
@@ -651,6 +698,27 @@
   font-size: var(--text-2xs);
   line-height: 1.2;
   text-align: center;
+}
+
+.tier-page--community
+  .tier-board--labeled-images
+  .tier-dropzone:not(:has(.tier-placeholder)) {
+  grid-template-columns: repeat(auto-fill, 7.5rem);
+}
+
+.tier-page--community .tier-board--labeled-images .tier-item-card {
+  width: 7.5rem;
+}
+
+.tier-page--community .tier-board--labeled-images .tier-item-image-wrap {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.tier-page--community .tier-board--labeled-images .tier-item-image {
+  border-radius: var(--radius-sm);
+  mix-blend-mode: normal;
 }
 
 @media (max-width: 640px) {

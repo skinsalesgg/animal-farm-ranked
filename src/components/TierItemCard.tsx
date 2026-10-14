@@ -4,6 +4,7 @@ type TierItemCardProps = {
   item: TierItem;
   showMeta?: boolean;
   imageOnly?: boolean;
+  hideName?: boolean;
   score?: number;
   votes?: number;
   draggable?: boolean;
@@ -14,6 +15,7 @@ export function TierItemCard({
   item,
   showMeta = false,
   imageOnly = false,
+  hideName = false,
   score,
   votes,
   draggable = false,
@@ -41,7 +43,7 @@ export function TierItemCard({
       {!imageOnly ? (
         showMeta ? (
           <>
-            <p className="tier-item-name">{item.label}</p>
+            {!hideName ? <p className="tier-item-name">{item.label}</p> : null}
             {typeof score === "number" && typeof votes === "number" ? (
               <p className="tier-item-meta">
                 {score.toFixed(2)} · {votes} vote{votes === 1 ? "" : "s"}

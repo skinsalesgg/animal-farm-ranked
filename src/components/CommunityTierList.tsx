@@ -1,6 +1,7 @@
 import { groupByCommunityTier } from "../lib/aggregate";
 import type { AggregatedItem } from "../lib/types";
 import { TIERS } from "../lib/types";
+import { useTierListContext } from "../hooks/useTierListContext";
 
 import { TierItemCard } from "./TierItemCard";
 
@@ -13,6 +14,7 @@ export function CommunityTierList({
   aggregated,
   submissionCount,
 }: CommunityTierListProps) {
+  const { list } = useTierListContext();
   const grouped = groupByCommunityTier(aggregated);
 
   if (submissionCount === 0) {
@@ -25,7 +27,9 @@ export function CommunityTierList({
   }
 
   return (
-    <div className="tier-board">
+    <div
+      className={`tier-board${list.labeledImages ? " tier-board--labeled-images" : ""}`}
+    >
       {TIERS.map((tier) => (
         <div key={tier} className="tier-row">
           <div className={`tier-label tier-label--${tier.toLowerCase()}`}>
@@ -38,6 +42,7 @@ export function CommunityTierList({
                   key={entry.item.id}
                   item={entry.item}
                   showMeta
+                  hideName={list.labeledImages}
                   score={entry.score}
                   votes={entry.votes}
                 />
